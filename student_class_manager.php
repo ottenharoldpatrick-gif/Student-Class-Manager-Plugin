@@ -586,6 +586,31 @@ class StudentClassManager {
                         });
                     }
                 });
+                
+                // Excel import conflict handling
+                $('input[name^="conflict_"]').change(function() {
+                    var llnr = $(this).attr('name').replace('conflict_', '');
+                    var action = $(this).val();
+                    var row = $(this).closest('tr');
+                    
+                    if (action === 'overwrite') {
+                        row.css('background-color', '#fff2cc');
+                    } else {
+                        row.css('background-color', '#ffebee');
+                    }
+                });
+                
+                // Set initial colors for conflict rows
+                $('input[name^="conflict_"]:checked').each(function() {
+                    var action = $(this).val();
+                    var row = $(this).closest('tr');
+                    
+                    if (action === 'overwrite') {
+                        row.css('background-color', '#fff2cc');
+                    } else {
+                        row.css('background-color', '#ffebee');
+                    }
+                });
             });
             </script>
             <style>
@@ -595,6 +620,19 @@ class StudentClassManager {
                 border-radius: 4px;
                 padding: 20px;
                 margin-bottom: 20px;
+            }
+            .conflict-row-overwrite {
+                background-color: #fff2cc !important;
+            }
+            .conflict-row-skip {
+                background-color: #ffebee !important;
+            }
+            .excel-preview {
+                max-height: 400px;
+                overflow-y: auto;
+                border: 1px solid #ddd;
+                padding: 10px;
+                background: #f9f9f9;
             }
             </style>
             <?php
