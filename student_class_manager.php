@@ -218,135 +218,8 @@ class StudentClassManager {
         );
     }
     
-public function settings_page() {
+    public function settings_page() {
         if (isset($_POST['submit']) && wp_verify_nonce($_POST['_wpnonce'], 'scm_settings')) {
-            update_option('scm_email_domain', sanitize_text_field($_POST['scm_email_domain']));
-            echo '<div class="notice notice-success scm-notice"><p>Instellingen opgeslagen!</p></div>';
-        }
-        
-        $email_domain = get_option('scm_email_domain', 'nassauvincent.nl');
-        
-        echo '<div class="wrap">
-            <h1>Student Class Manager Settings</h1>
-            <form method="post">';
-        wp_nonce_field('scm_settings');
-        echo '<table class="form-table">
-                <tr>
-                    <th>Email Domain</th>
-                    <td>
-                        <input name="scm_email_domain" type="text" value="' . esc_attr($email_domain) . '" class="regular-text" />
-                        <p class="description">Het domein voor automatisch gegenereerde emails</p>
-                    </td>
-                </tr>
-            </table>';
-        submit_button();
-        echo '</form></div>';
-    }
-    
-    public function custom_login_redirect($redirect_to, $request, $user) {
-        if (isset($user->roles) && is_array($user->roles) && in_array('subscriber', $user->roles)) {
-            return $this->get_student_class_page_url($user->ID);
-        }
-        return $redirect_to;
-    }
-    
-    public function sensei_login_redirect($redirect_url, $user) {
-        if (isset($user->roles) && is_array($user->roles) && in_array('subscriber', $user->roles)) {
-            return $this->get_student_class_page_url($user->ID);
-        }
-        return $redirect_url;
-    }
-    
-    public function force_custom_redirect($user_login, $user) {
-        if (isset($user->roles) && is_array($user->roles) && in_array('subscriber', $user->roles)) {
-            $redirect_url = $this->get_student_class_page_url($user->ID);
-            if ($redirect_url && $redirect_url !== home_url()) {
-                wp_redirect($redirect_url);
-                exit;
-            }
-        }
-    }
-    
-    private function get_student_class_page_url($user_id) {
-        $student_class = get_user_meta($user_id, 'student_class', true);
-        
-        if (!$student_class) {
-            return home_url();
-        }
-        
-        global $wpdb;
-        $class = $wpdb->get_row($wpdb->prepare("SELECT page_id FROM {$this->table_name} WHERE class_name = %s", $student_class));
-        
-        if ($class && $class->page_id) {
-            return get_permalink($class->page_id);
-        }
-        
-        return home_url();
-    }
-    
-    public function student_greeting_shortcode($atts) {
-        if (!is_user_logged_in()) {
-            return '<p>Log in om je persoonlijke welkomstbericht te zien.</p>';
-        }
-        
-        $current_user = wp_get_current_user();
-        $student_class = get_user_meta($current_user->ID, 'student_class', true);
-        
-        $greeting = '<div class="student-greeting">';
-        $greeting .= '<h2>Hallo ' . esc_html($current_user->display_name) . '!</h2>';
-        
-        if ($student_class) {
-            $greeting .= '<p>Welkom terug in klas <strong>' . esc_html($student_class) . '</strong>.</p>';
-        } else {
-            $greeting .= '<p>Je bent nog niet toegewezen aan een klas. Neem contact op met je docent.</p>';
-        }
-        
-        $greeting .= '</div>';
-        
-        return $greeting;
-    }
-    
-    public function replace_greeting_placeholder($content) {
-        if (strpos($content, '[student_greeting]') !== false) {
-            $content = str_replace('[student_greeting]', $this->student_greeting_shortcode(array()), $content);
-        }
-        return $content;
-    }
-    
-    private function get_default_class_page_content($class_name) {
-        return '<div class="student-class-welcome">
-    <h1>Welkom bij klas ' . esc_html($class_name) . '</h1>
-    
-    [student_greeting]
-    
-    <p>Hier vind je alle informatie en materialen voor jouw klas. Gebruik de navigatie hieronder om te beginnen met leren!</p>
-    
-    <div class="class-navigation">
-        <h3>Wat kun je hier doen?</h3>
-        <ul>
-            <li>Bekijk je lessen en voortgang</li>
-            <li>Download studiematerialen</li>
-            <li>Bekijk aankondigingen van je docent</li>
-            <li>Neem contact op met je klasgenoten</li>
-        </ul>
-    </div>
-    
-    <div class="class-info">
-        <h3>Klasinformatie</h3>
-        <p><strong>Klas:</strong> ' . esc_html($class_name) . '</p>
-        <p><strong>Docent:</strong> Meneer Otten</p>
-        <p><strong>School:</strong> Nassau Vincent</p>
-    </div>
-</div>';
-    }
-    
-    public function load_textdomain() {
-        load_plugin_textdomain('student-class-manager', false, dirname(plugin_basename(__FILE__)) . '/languages/');
-    }
-}
-
-// Initialize the plugin
-new StudentClassManager();submit']) && wp_verify_nonce($_POST['_wpnonce'], 'scm_settings')) {
             update_option('scm_email_domain', sanitize_text_field($_POST['scm_email_domain']));
             echo '<div class="notice notice-success scm-notice"><p>Instellingen opgeslagen!</p></div>';
         }
@@ -746,4 +619,112 @@ new StudentClassManager();submit']) && wp_verify_nonce($_POST['_wpnonce'], 'scm_
     }
     
     public function save_registration_class_field($user_id, $password, $meta) {
-        if (isset($_POST['
+        if (isset($_POST['student_class'])) {
+            update_user_meta($user_id, 'student_class', sanitize_text_field($_POST['student_class']));
+        }
+    }
+    
+    public function custom_login_redirect($redirect_to, $request, $user) {
+        if (isset($user->roles) && is_array($user->roles) && in_array('subscriber', $user->roles)) {
+            return $this->get_student_class_page_url($user->ID);
+        }
+        return $redirect_to;
+    }
+    
+    public function sensei_login_redirect($redirect_url, $user) {
+        if (isset($user->roles) && is_array($user->roles) && in_array('subscriber', $user->roles)) {
+            return $this->get_student_class_page_url($user->ID);
+        }
+        return $redirect_url;
+    }
+    
+    public function force_custom_redirect($user_login, $user) {
+        if (isset($user->roles) && is_array($user->roles) && in_array('subscriber', $user->roles)) {
+            $redirect_url = $this->get_student_class_page_url($user->ID);
+            if ($redirect_url && $redirect_url !== home_url()) {
+                wp_redirect($redirect_url);
+                exit;
+            }
+        }
+    }
+    
+    private function get_student_class_page_url($user_id) {
+        $student_class = get_user_meta($user_id, 'student_class', true);
+        
+        if (!$student_class) {
+            return home_url();
+        }
+        
+        global $wpdb;
+        $class = $wpdb->get_row($wpdb->prepare("SELECT page_id FROM {$this->table_name} WHERE class_name = %s", $student_class));
+        
+        if ($class && $class->page_id) {
+            return get_permalink($class->page_id);
+        }
+        
+        return home_url();
+    }
+    
+    public function student_greeting_shortcode($atts) {
+        if (!is_user_logged_in()) {
+            return '<p>Log in om je persoonlijke welkomstbericht te zien.</p>';
+        }
+        
+        $current_user = wp_get_current_user();
+        $student_class = get_user_meta($current_user->ID, 'student_class', true);
+        
+        $greeting = '<div class="student-greeting">';
+        $greeting .= '<h2>Hallo ' . esc_html($current_user->display_name) . '!</h2>';
+        
+        if ($student_class) {
+            $greeting .= '<p>Welkom terug in klas <strong>' . esc_html($student_class) . '</strong>.</p>';
+        } else {
+            $greeting .= '<p>Je bent nog niet toegewezen aan een klas. Neem contact op met je docent.</p>';
+        }
+        
+        $greeting .= '</div>';
+        
+        return $greeting;
+    }
+    
+    public function replace_greeting_placeholder($content) {
+        if (strpos($content, '[student_greeting]') !== false) {
+            $content = str_replace('[student_greeting]', $this->student_greeting_shortcode(array()), $content);
+        }
+        return $content;
+    }
+    
+    private function get_default_class_page_content($class_name) {
+        return '<div class="student-class-welcome">
+    <h1>Welkom bij klas ' . esc_html($class_name) . '</h1>
+    
+    [student_greeting]
+    
+    <p>Hier vind je alle informatie en materialen voor jouw klas. Gebruik de navigatie hieronder om te beginnen met leren!</p>
+    
+    <div class="class-navigation">
+        <h3>Wat kun je hier doen?</h3>
+        <ul>
+            <li>Bekijk je lessen en voortgang</li>
+            <li>Download studiematerialen</li>
+            <li>Bekijk aankondigingen van je docent</li>
+            <li>Neem contact op met je klasgenoten</li>
+        </ul>
+    </div>
+    
+    <div class="class-info">
+        <h3>Klasinformatie</h3>
+        <p><strong>Klas:</strong> ' . esc_html($class_name) . '</p>
+        <p><strong>Docent:</strong> Meneer Otten</p>
+        <p><strong>School:</strong> Nassau Vincent</p>
+    </div>
+</div>';
+    }
+    
+    public function load_textdomain() {
+        load_plugin_textdomain('student-class-manager', false, dirname(plugin_basename(__FILE__)) . '/languages/');
+    }
+}
+
+// Initialize the plugin
+new StudentClassManager();
