@@ -218,11 +218,29 @@ class StudentClassManager {
         );
     }
     
-    public function settings_page() {
-    public function save_registration_class_field($user_id, $password, $meta) {
-        if (isset($_POST['student_class'])) {
-            update_user_meta($user_id, 'student_class', sanitize_text_field($_POST['student_class']));
+public function settings_page() {
+        if (isset($_POST['submit']) && wp_verify_nonce($_POST['_wpnonce'], 'scm_settings')) {
+            update_option('scm_email_domain', sanitize_text_field($_POST['scm_email_domain']));
+            echo '<div class="notice notice-success scm-notice"><p>Instellingen opgeslagen!</p></div>';
         }
+        
+        $email_domain = get_option('scm_email_domain', 'nassauvincent.nl');
+        
+        echo '<div class="wrap">
+            <h1>Student Class Manager Settings</h1>
+            <form method="post">';
+        wp_nonce_field('scm_settings');
+        echo '<table class="form-table">
+                <tr>
+                    <th>Email Domain</th>
+                    <td>
+                        <input name="scm_email_domain" type="text" value="' . esc_attr($email_domain) . '" class="regular-text" />
+                        <p class="description">Het domein voor automatisch gegenereerde emails</p>
+                    </td>
+                </tr>
+            </table>';
+        submit_button();
+        echo '</form></div>';
     }
     
     public function custom_login_redirect($redirect_to, $request, $user) {
